@@ -161,7 +161,7 @@ public class MemberTest {
     }
 
     @Test
-    public void sort(){
+    public void sort() {
         List<Member> fetch = query.selectFrom(member)
                 .where(member.name.contains("member"))
                 .orderBy(member.age.desc().nullsLast(), member.name.asc().nullsLast())
@@ -169,6 +169,41 @@ public class MemberTest {
 
 
         Assertions.assertThat(fetch.size()).isEqualTo(6);
+    }
+
+
+    @Test
+    public void paging() {
+        List<Member> fetch = query.selectFrom(member)
+                .orderBy(member.age.desc().nullsLast())
+                .offset(1)
+                .limit(5)
+                .fetch();
+
+
+        Assertions.assertThat(fetch.size()).isEqualTo(5);
+        fetch.forEach(member1 -> {
+            log.info("age : {}", member1.getAge());
+        });
+
+    }
+
+    @Test
+    public void pagingWithTotalCount() {
+        QueryResults<Member> results = query.selectFrom(member)
+                .orderBy(member.age.desc().nullsLast())
+                .offset(1)
+                .limit(5)
+                .fetchResults();
+
+        log.info("size : {}", results.getTotal()); // 전체 레코드 수
+        Assertions.assertThat(results.getTotal()).isEqualTo(6);
+        results.getResults().forEach(member1 -> {
+            log.info("age : {}", member1.getAge());
+            log.info("name : {}", member1.getName());
+
+        });
+
     }
 
 }
