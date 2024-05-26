@@ -1,5 +1,6 @@
 package study.querydsl.entity;
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -116,14 +117,58 @@ public class MemberTest {
         QMember qMember = member;
         List<Member> fetch = query.select(member)
                 .from(member)
-                .where(member.age.eq(1)
-                        .and(member.name.like("%" + name + "%")))
+                .where(member.age.eq(1), member.name.like("%" + name + "%"))
                 .fetch();
 
         Assertions.assertThat(fetch.size()).isEqualTo(1);
-
-
     }
 
+
+    @Test
+    public void supportedMethod() {
+
+        int age = 10;
+        String name = "member";
+        QMember qMember = member;
+
+        // 1. 단건 조회
+        List<Member> fetch = query.select(member)
+                .from(member)
+                .where(member.age.eq(1), member.name.like("%" + name + "%"))
+                .fetch();
+
+        // 2. List 조회
+        Member member1 = query.select(member)
+                .from(member)
+                .where(member.age.eq(1), member.name.like("%" + name + "%"))
+                .fetchOne();
+
+        // 3. List 조회와 total count
+        QueryResults<Member> memberQueryResults = query.select(member)
+                .from(member)
+                .where(member.age.eq(1), member.name.like("%" + name + "%"))
+                .fetchResults();
+
+        memberQueryResults.getTotal();
+        memberQueryResults.getResults();
+
+
+        // 4. count 만 가져오기
+        long l = query.select(member)
+                .from(member)
+                .where(member.age.eq(1), member.name.like("%" + name + "%"))
+                .fetchCount();
+    }
+
+    @Test
+    public void sort(){
+        List<Member> fetch = query.selectFrom(member)
+                .where(member.name.contains("member"))
+                .orderBy(member.age.desc().nullsLast(), member.name.asc().nullsLast())
+                .fetch();
+
+
+        Assertions.assertThat(fetch.size()).isEqualTo(6);
+    }
 
 }
