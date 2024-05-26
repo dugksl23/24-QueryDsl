@@ -2,21 +2,24 @@ package study.querydsl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.jpa.repository.support.Querydsl;
-import org.springframework.test.annotation.Commit;
+import study.querydsl.entity.Hello;
+import study.querydsl.entity.QHello;
+import study.querydsl.repository.HelloRepository;
 
 @SpringBootTest
+@Slf4j
 class QuerydslApplicationTests {
 
     private final EntityManager em;
     private final JPAQueryFactory query;
+    @Autowired
+    private HelloRepository helloRepository;
 
     @Autowired
     public QuerydslApplicationTests(EntityManager em) {
@@ -30,12 +33,11 @@ class QuerydslApplicationTests {
 
     @Test
     @Transactional
-//    @Commit
     void queryDsl() {
 
 		// given...
         Hello hello1 = new Hello("hello");
-        em.persist(hello1);
+        Hello save = helloRepository.save(hello1);
         QHello hello2 = new QHello("hello");
         QHello qHello = QHello.hello;
 
@@ -47,8 +49,9 @@ class QuerydslApplicationTests {
 				.fetchOne();
 
 		// then...
-		Assertions.assertThat(hello).isEqualTo(hello1);
-        Assertions.assertThat(hello.getId()).isEqualTo(hello1.getId() );
+        log.info("created hello: {}", hello.getCreatedAt());
+		Assertions.assertThat(hello).isEqualTo(save);
+        Assertions.assertThat(hello.getId()).isEqualTo(save.getId() );
 
 
 

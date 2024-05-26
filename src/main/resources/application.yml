@@ -39,14 +39,14 @@ logging:
         jdbc: debug
       hibernate:
         SQL: DEBUG
-        #        type: trace
-        type:
-          descriptor:
-            sql:
-              BasicBinder: TRACE
-        jdbc:
-          bind:
-            TRACE
+        type: Trace
+#        type:
+#          descriptor:
+#            sql:
+#              BasicBinder: TRACE
+#        jdbc:
+#          bind:
+#            TRACE
 
 
 server:

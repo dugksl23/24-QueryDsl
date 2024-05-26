@@ -1,4 +1,4 @@
-package study.querydsl;
+package study.querydsl.entity;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
@@ -15,9 +15,11 @@ import com.querydsl.core.types.Path;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QHello extends EntityPathBase<Hello> {
 
-    private static final long serialVersionUID = 375554110L;
+    private static final long serialVersionUID = 1910216155L;
 
     public static final QHello hello = new QHello("hello");
+
+    public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 

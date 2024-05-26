@@ -1,8 +1,9 @@
-package study.querydsl;
+package study.querydsl.controller;
 
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import study.querydsl.entity.Hello;
 
 @RestController
 public class HelloController {
