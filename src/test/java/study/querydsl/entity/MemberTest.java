@@ -1,6 +1,7 @@
 package study.querydsl.entity;
 
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -21,6 +22,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static study.querydsl.entity.QMember.member;
+import static study.querydsl.entity.QTeam.team;
+import static study.querydsl.entity.QTeamMember.teamMember;
 
 
 @SpringBootTest
@@ -41,13 +44,14 @@ public class MemberTest {
 
 
     @BeforeEach
+    @Transactional
     public void init() {
         query = new JPAQueryFactory(em);
-        IntStream.rangeClosed(0, 5).forEach(i -> {
+        IntStream.rangeClosed(1, 5).forEach(i -> {
             Member member = new Member("member" + i, i);
-            memberRepository.save(member);
             Team team = new Team("team" + i);
-            teamRepository.save(team);
+            member.addTeam(team);
+            memberRepository.save(member);
         });
     }
 
@@ -203,6 +207,30 @@ public class MemberTest {
             log.info("name : {}", member1.getName());
 
         });
+
+    }
+
+
+    @Test
+    public void aggregation() {
+        List<Tuple> fetch = query.select(member.age.avg(),
+                        teamMember.team.name)
+                .from(member)
+                .join(member.teamMembers, teamMember)
+//                .join(teamMember.team, team)
+                .groupBy(team.name)
+                .having(member.age.gt(0))
+                .fetch();
+
+        Double v = fetch.get(0).get(0, Double.class);
+        String s = fetch.get(0).get(1, String.class);
+
+        log.info("age : {}", v);
+        log.info("team name : {}", s);
+
+        Assertions.assertThat(fetch.size()).isEqualTo(5);
+        Assertions.assertThat(v).isEqualTo(1);
+        Assertions.assertThat(s).isEqualTo("team1");
 
     }
 
