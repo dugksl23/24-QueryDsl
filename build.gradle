@@ -67,7 +67,7 @@ tasks.named('test') {
 compileJava { options.compilerArgs << '-parameters' }
 
 // Querydsl 설정부
-def generated = 'generated'
+def generated = 'out'
 
 // querydsl QClass 파일 생성 위치를 지정
 tasks.withType(JavaCompile) {
