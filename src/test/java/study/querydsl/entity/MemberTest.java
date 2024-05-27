@@ -2,6 +2,7 @@ package study.querydsl.entity;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -91,9 +92,7 @@ public class MemberTest {
 
         // when...
         String query = "select m from Member m where m.id = :memberId";
-        Member member1 = em.createQuery(query, Member.class)
-                .setParameter("memberId", memberId)
-                .getSingleResult();
+        Member member1 = em.createQuery(query, Member.class).setParameter("memberId", memberId).getSingleResult();
 
         // then...
         assertThat(member1.getId()).isEqualTo(memberId);
@@ -121,10 +120,7 @@ public class MemberTest {
         int age = 10;
         String name = "member";
         QMember qMember = member;
-        List<Member> fetch = query.select(member)
-                .from(member)
-                .where(member.age.eq(1), member.name.like("%" + name + "%"))
-                .fetch();
+        List<Member> fetch = query.select(member).from(member).where(member.age.eq(1), member.name.like("%" + name + "%")).fetch();
 
         assertThat(fetch.size()).isEqualTo(1);
     }
@@ -138,40 +134,25 @@ public class MemberTest {
         QMember qMember = member;
 
         // 1. 단건 조회
-        List<Member> fetch = query.select(member)
-                .from(member)
-                .where(member.age.eq(1), member.name.like("%" + name + "%"))
-                .fetch();
+        List<Member> fetch = query.select(member).from(member).where(member.age.eq(1), member.name.like("%" + name + "%")).fetch();
 
         // 2. List 조회
-        Member member1 = query.select(member)
-                .from(member)
-                .where(member.age.eq(1), member.name.like("%" + name + "%"))
-                .fetchOne();
+        Member member1 = query.select(member).from(member).where(member.age.eq(1), member.name.like("%" + name + "%")).fetchOne();
 
         // 3. List 조회와 total count
-        QueryResults<Member> memberQueryResults = query.select(member)
-                .from(member)
-                .where(member.age.eq(1), member.name.like("%" + name + "%"))
-                .fetchResults();
+        QueryResults<Member> memberQueryResults = query.select(member).from(member).where(member.age.eq(1), member.name.like("%" + name + "%")).fetchResults();
 
         memberQueryResults.getTotal();
         memberQueryResults.getResults();
 
 
         // 4. count 만 가져오기
-        long l = query.select(member)
-                .from(member)
-                .where(member.age.eq(1), member.name.like("%" + name + "%"))
-                .fetchCount();
+        long l = query.select(member).from(member).where(member.age.eq(1), member.name.like("%" + name + "%")).fetchCount();
     }
 
     @Test
     public void sort() {
-        List<Member> fetch = query.selectFrom(member)
-                .where(member.name.contains("member"))
-                .orderBy(member.age.desc().nullsLast(), member.name.asc().nullsLast())
-                .fetch();
+        List<Member> fetch = query.selectFrom(member).where(member.name.contains("member")).orderBy(member.age.desc().nullsLast(), member.name.asc().nullsLast()).fetch();
 
 
         assertThat(fetch.size()).isEqualTo(6);
@@ -180,11 +161,7 @@ public class MemberTest {
 
     @Test
     public void paging() {
-        List<Member> fetch = query.selectFrom(member)
-                .orderBy(member.age.desc().nullsLast())
-                .offset(1)
-                .limit(5)
-                .fetch();
+        List<Member> fetch = query.selectFrom(member).orderBy(member.age.desc().nullsLast()).offset(1).limit(5).fetch();
 
 
         assertThat(fetch.size()).isEqualTo(5);
@@ -196,11 +173,7 @@ public class MemberTest {
 
     @Test
     public void pagingWithTotalCount() {
-        QueryResults<Member> results = query.selectFrom(member)
-                .orderBy(member.age.desc().nullsLast())
-                .offset(1)
-                .limit(5)
-                .fetchResults();
+        QueryResults<Member> results = query.selectFrom(member).orderBy(member.age.desc().nullsLast()).offset(1).limit(5).fetchResults();
 
         log.info("size : {}", results.getTotal()); // 전체 레코드 수
         assertThat(results.getTotal()).isEqualTo(6);
@@ -215,14 +188,7 @@ public class MemberTest {
 
     @Test
     public void aggregation() {
-        List<Tuple> fetch = query.select(member.age.avg(),
-                        teamMember.team.name)
-                .from(member)
-                .join(member.teamMembers, teamMember)
-                .join(teamMember.team, team)
-                .groupBy(team.name)
-                .having(member.age.gt(0))
-                .fetch();
+        List<Tuple> fetch = query.select(member.age.avg(), teamMember.team.name).from(member).join(member.teamMembers, teamMember).join(teamMember.team, team).groupBy(team.name).having(member.age.gt(0)).fetch();
 
         Double v = fetch.get(0).get(0, Double.class);
         String s = fetch.get(0).get(1, String.class);
@@ -245,12 +211,7 @@ public class MemberTest {
     public void join() {
 
         String teamName = "team1";
-        List<Member> fetch = query.select(member)
-                .from(member)
-                .where(team.name.eq(teamName))
-                .join(member.teamMembers, teamMember)
-                .join(teamMember.team, team)
-                .fetch();
+        List<Member> fetch = query.select(member).from(member).where(team.name.eq(teamName)).join(member.teamMembers, teamMember).join(teamMember.team, team).fetch();
 
         log.info("size : {}", fetch.size());
         assertThat(fetch.get(0).getTeamMembers().get(0).getTeam().getName()).isEqualTo(teamName);
@@ -272,10 +233,7 @@ public class MemberTest {
         memberRepository.save(team2);
 
         String teamName = "team1";
-        List<Member> fetch = query.select(member)
-                .from(member, team)
-                .where(member.name.eq(teamName))
-                .fetch();
+        List<Member> fetch = query.select(member).from(member, team).where(member.name.eq(teamName)).fetch();
 
         log.info("size : {}", fetch.size());
         assertThat(fetch.size()).isEqualTo(2);
@@ -295,14 +253,11 @@ public class MemberTest {
         String teamName = "team1";
 
         // When: QueryDSL로 회원을 조회하면서 특정 팀 이름을 가진 팀과 LEFT JOIN
-        List<Member> fetch = query.selectFrom(member)
-                .leftJoin(member.teamMembers, teamMember)
-                .leftJoin(teamMember.team, team)
+        List<Member> fetch = query.selectFrom(member).leftJoin(member.teamMembers, teamMember).leftJoin(teamMember.team, team)
 //                .on(teamMember.team.name.eq(":ddddd"))
 //                .join(member.teamMembers, teamMember)
 //                .join(teamMember.team, team)
-                .where(team.name.eq(teamName))
-                .fetch();
+                .where(team.name.eq(teamName)).fetch();
 
         // Then: 조회된 회원 정보를 출력하고 검증
         fetch.forEach(m -> {
@@ -337,12 +292,7 @@ public class MemberTest {
         String teamName = "team1";
 
         // When: QueryDSL로 회원을 조회하면서 특정 팀 이름을 가진 팀과 LEFT JOIN
-        List<Tuple> fetch = query
-                .select(member, team)
-                .from(member)
-                .leftJoin(team)
-                .on(member.name.eq(team.name))
-                .fetch();
+        List<Tuple> fetch = query.select(member, team).from(member).leftJoin(team).on(member.name.eq(team.name)).fetch();
         for (Tuple tuple : fetch) {
             ;
             log.info("tuple : {}", tuple);
@@ -360,11 +310,7 @@ public class MemberTest {
     public void fetch_Join() {
 
         // When: QueryDSL로 회원을 조회하면서 특정 팀 이름을 가진 팀과 LEFT JOIN
-        List<Member> fetch = query
-                .select(member)
-                .from(member)
-                .join(member.teamMembers, teamMember).fetchJoin()
-                .fetch();
+        List<Member> fetch = query.select(member).from(member).join(member.teamMembers, teamMember).fetchJoin().fetch();
 
         // Then: 조회된 회원 정보를 출력하고 검증
         fetch.forEach(m -> {
@@ -372,9 +318,7 @@ public class MemberTest {
             log.info("name : {}", m.getName());
             log.info("age : {}", m.getAge());
             m.getTeamMembers().forEach(tm -> {
-                boolean loaded =
-                        emf.getPersistenceUnitUtil()
-                                .isLoaded(tm.getTeam());
+                boolean loaded = emf.getPersistenceUnitUtil().isLoaded(tm.getTeam());
                 assertThat(loaded).as("페치 조인 적용").isTrue();
                 log.info("team name : {}", tm.getTeam().getName());
             });
@@ -383,6 +327,53 @@ public class MemberTest {
         // Assert: 조회된 회원의 수를 검증
         assertThat(fetch.size()).isEqualTo(5);
 
+    }
+
+    /**
+     * 서브 쿼리
+     * 나이 많은 사람 조회
+     */
+    @Test
+    public void subQuery() {
+
+        QMember subMember = new QMember("subMember");
+        List<Member> fetch = query.select(member).from(member).where(member.age.eq(JPAExpressions.select(subMember.age.max()).from(subMember))).fetch();
+
+        Assertions.assertThat(fetch.size()).isEqualTo(1);
+        fetch.forEach(m -> log.info("member age : {}", m.getAge()));
+    }
+
+    /**
+     * 나이가 평균 이상인 회원
+     */
+    @Test
+    public void subQueryGoe() {
+
+        QMember subMember = new QMember("subMember");
+        List<Member> fetch = query.select(member).from(member).where(member.age.goe(JPAExpressions.select(subMember.age.avg()).from(subMember))).fetch();
+
+        fetch.forEach(m -> log.info("member age : {}", m.getAge()));
+    }
+
+
+    /**
+     * 서브 쿼리 여러 건 처리, in
+     * 회원의 전체 평균 나이에 들어오는 모든 회원,
+     */
+    @Test
+    public void subQueryIn() {
+
+        QMember subMember = new QMember("subMember");
+        List<Member> fetch = query.select(member)
+                .from(member)
+                .where(member.age.in
+                        (JPAExpressions
+                                .select(subMember.age)
+                                .from(subMember)
+                                .where(subMember.age.goe(2))
+                        )).fetch();
+
+        fetch.forEach(m -> log.info("member age : {}", m.getAge()));
     }
 
 
