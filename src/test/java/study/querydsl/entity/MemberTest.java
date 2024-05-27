@@ -2,6 +2,8 @@ package study.querydsl.entity;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -18,6 +20,7 @@ import study.querydsl.repository.MemberQueryRepository;
 import study.querydsl.repository.MemberRepository;
 import study.querydsl.repository.TeamRepository;
 
+import java.io.CharArrayReader;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -376,7 +379,58 @@ public class MemberTest {
         fetch.forEach(m -> log.info("member age : {}", m.getAge()));
     }
 
+    /**
+     * 서브 쿼리 여러 건 처리, in
+     * 회원의 전체 평균 나이에 들어오는 모든 회원,
+     */
+    @Test
+    public void case_simple() {
 
+        List<String> cas = query.select(member.age
+                        .when(1).then("1살 이상")
+                        .when(5).then("5살")
+                        .otherwise("기타"))
+                .from(member)
+                .fetch();
+
+        cas.forEach(m -> log.info("member age : {}", m));
+    }
+
+    /**
+     * 복잡한 조건
+     */
+    @Test
+    public void case_complex() {
+
+        StringExpression caseExpression = new CaseBuilder()
+                .when(member.age.between(1, 2)).then("2살 이하")
+                .when(member.age.between(3, 5)).then("5살 이하")
+                .otherwise("기타");
+        List<String> fetch = query.select(caseExpression)
+                .from(member)
+                .fetch();
+
+        fetch.forEach(m -> log.info("member age : {}", m));
+    }
+
+
+    /**
+     * 복잡한 조건 order by
+     */
+    @Test
+    public void case_orderBy() {
+
+        StringExpression caseExpression = new CaseBuilder()
+                .when(member.age.between(1, 2)).then("2살 이하")
+                .when(member.age.between(3, 5)).then("5살 이하")
+                .otherwise("기타");
+        List<Member> fetch = query.select(member)
+                .from(member)
+                .orderBy(caseExpression.desc())
+                .fetch();
+
+        fetch.forEach(m -> log.info("member age : {}", m));
+    }
 
 
 }
