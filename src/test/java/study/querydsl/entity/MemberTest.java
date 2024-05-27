@@ -3,6 +3,7 @@ package study.querydsl.entity;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -432,5 +433,34 @@ public class MemberTest {
         fetch.forEach(m -> log.info("member age : {}", m));
     }
 
+
+    /**
+     * 상수가 필요할 경우
+     */
+    @Test
+    public void constant() {
+
+        List<Tuple> fetch = query.select(
+                        member.name,
+                        Expressions.constant("안녕"))
+                .from(member)
+                .fetch();
+    }
+
+
+    /**
+     * 문자 더하기
+     * 유저 내임과 나이 더하기
+     */
+    @Test
+    public void concat() {
+
+        List<String> fetch = query.select(
+                        member.name.concat("_").concat(member.age.stringValue()))
+                .from(member)
+                .fetch();
+
+        fetch.forEach(m -> log.info("member name : {}", m));
+    }
 
 }
