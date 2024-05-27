@@ -4,6 +4,7 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
@@ -18,7 +19,9 @@ import study.querydsl.repository.TeamRepository;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.entity.QMember.member;
 import static study.querydsl.entity.QTeam.team;
 import static study.querydsl.entity.QTeamMember.teamMember;
@@ -37,6 +40,8 @@ public class MemberTest {
 
     @Autowired
     private EntityManager em;
+    @Autowired
+    private EntityManagerFactory emf;
 
     private JPAQueryFactory query;
 
@@ -44,12 +49,12 @@ public class MemberTest {
     @BeforeEach
     public void init() {
         query = new JPAQueryFactory(em);
-//        IntStream.rangeClosed(1, 5).forEach(i -> {
-//            Member member = new Member("member" + i, i);
-//            Team team = new Team("team" + i);
-//            member.addTeam(team);
-//            memberRepository.save(member);
-//        });
+        IntStream.rangeClosed(1, 5).forEach(i -> {
+            Member member = new Member("member" + i, i);
+            Team team = new Team("team" + i);
+            member.addTeam(team);
+            memberRepository.save(member);
+        });
     }
 
     @Test
@@ -68,12 +73,12 @@ public class MemberTest {
         Member save = memberRepository.save(member);
 
         // then...
-        Assertions.assertThat(save.getName()).isEqualTo(member.getName());
+        assertThat(save.getName()).isEqualTo(member.getName());
         save.getTeamMembers().forEach(teamMember -> {
             log.info("saved member Name : {}", save.getName());
             log.info("saved team Name : {}", teamMember.getTeam().getName());
             ;
-            Assertions.assertThat(teamMember.getTeam().getName()).isEqualTo(team.getName());
+            assertThat(teamMember.getTeam().getName()).isEqualTo(team.getName());
         });
 
     }
@@ -91,7 +96,7 @@ public class MemberTest {
                 .getSingleResult();
 
         // then...
-        Assertions.assertThat(member1.getId()).isEqualTo(memberId);
+        assertThat(member1.getId()).isEqualTo(memberId);
 
     }
 
@@ -106,7 +111,7 @@ public class MemberTest {
         Member byId = queryRepository.findById(memberId);
 
         // then...
-        Assertions.assertThat(byId.getId()).isEqualTo(memberId);
+        assertThat(byId.getId()).isEqualTo(memberId);
 
     }
 
@@ -121,7 +126,7 @@ public class MemberTest {
                 .where(member.age.eq(1), member.name.like("%" + name + "%"))
                 .fetch();
 
-        Assertions.assertThat(fetch.size()).isEqualTo(1);
+        assertThat(fetch.size()).isEqualTo(1);
     }
 
 
@@ -169,7 +174,7 @@ public class MemberTest {
                 .fetch();
 
 
-        Assertions.assertThat(fetch.size()).isEqualTo(6);
+        assertThat(fetch.size()).isEqualTo(6);
     }
 
 
@@ -182,7 +187,7 @@ public class MemberTest {
                 .fetch();
 
 
-        Assertions.assertThat(fetch.size()).isEqualTo(5);
+        assertThat(fetch.size()).isEqualTo(5);
         fetch.forEach(member1 -> {
             log.info("age : {}", member1.getAge());
         });
@@ -198,7 +203,7 @@ public class MemberTest {
                 .fetchResults();
 
         log.info("size : {}", results.getTotal()); // 전체 레코드 수
-        Assertions.assertThat(results.getTotal()).isEqualTo(6);
+        assertThat(results.getTotal()).isEqualTo(6);
         results.getResults().forEach(member1 -> {
             log.info("age : {}", member1.getAge());
             log.info("name : {}", member1.getName());
@@ -225,9 +230,9 @@ public class MemberTest {
         log.info("age : {}", v);
         log.info("team name : {}", s);
 
-        Assertions.assertThat(fetch.size()).isEqualTo(5);
-        Assertions.assertThat(v).isEqualTo(1);
-        Assertions.assertThat(s).isEqualTo("team1");
+        assertThat(fetch.size()).isEqualTo(5);
+        assertThat(v).isEqualTo(1);
+        assertThat(s).isEqualTo("team1");
 
     }
 
@@ -248,7 +253,7 @@ public class MemberTest {
                 .fetch();
 
         log.info("size : {}", fetch.size());
-        Assertions.assertThat(fetch.get(0).getTeamMembers().get(0).getTeam().getName()).isEqualTo(teamName);
+        assertThat(fetch.get(0).getTeamMembers().get(0).getTeam().getName()).isEqualTo(teamName);
         fetch.stream().forEach(member1 -> {
             log.info("name : {}", member1.getName());
         });
@@ -273,7 +278,7 @@ public class MemberTest {
                 .fetch();
 
         log.info("size : {}", fetch.size());
-        Assertions.assertThat(fetch.size()).isEqualTo(2);
+        assertThat(fetch.size()).isEqualTo(2);
         fetch.stream().forEach(member1 -> {
             log.info("member name : {}", member1.getName());
             ;
@@ -310,7 +315,7 @@ public class MemberTest {
         });
 
         // Assert: 조회된 회원의 수를 검증
-        Assertions.assertThat(fetch.size()).isEqualTo(1);
+        assertThat(fetch.size()).isEqualTo(1);
     }
 
     /**
@@ -333,17 +338,51 @@ public class MemberTest {
 
         // When: QueryDSL로 회원을 조회하면서 특정 팀 이름을 가진 팀과 LEFT JOIN
         List<Tuple> fetch = query
-                .select(team, member)
+                .select(member, team)
                 .from(member)
                 .leftJoin(team)
                 .on(member.name.eq(team.name))
                 .fetch();
-        for (Tuple tuple : fetch) {;
+        for (Tuple tuple : fetch) {
+            ;
             log.info("tuple : {}", tuple);
         }
 
         // Assert: 조회된 회원의 수를 검증
-        Assertions.assertThat(fetch.size()).isEqualTo(3);
+        assertThat(fetch.size()).isEqualTo(3);
+    }
+
+    /**
+     * Fetch join
+     */
+    @Test
+    @Transactional
+    public void fetch_Join() {
+
+        // When: QueryDSL로 회원을 조회하면서 특정 팀 이름을 가진 팀과 LEFT JOIN
+        List<Member> fetch = query
+                .select(member)
+                .from(member)
+                .join(member.teamMembers, teamMember).fetchJoin()
+                .fetch();
+
+        // Then: 조회된 회원 정보를 출력하고 검증
+        fetch.forEach(m -> {
+            log.info("member id : {}", m.getId());
+            log.info("name : {}", m.getName());
+            log.info("age : {}", m.getAge());
+            m.getTeamMembers().forEach(tm -> {
+                boolean loaded =
+                        emf.getPersistenceUnitUtil()
+                                .isLoaded(tm.getTeam());
+                assertThat(loaded).as("페치 조인 적용").isTrue();
+                log.info("team name : {}", tm.getTeam().getName());
+            });
+        });
+
+        // Assert: 조회된 회원의 수를 검증
+        assertThat(fetch.size()).isEqualTo(5);
+
     }
 
 
