@@ -1,7 +1,6 @@
 package study.querydsl.entity;
 
 
-import ch.qos.logback.core.util.StringUtil;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -17,13 +16,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.MemberSearchCondition;
+import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberDto;
+import study.querydsl.repository.MemberJpaRepository;
 import study.querydsl.repository.MemberRepository;
 
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.entity.QMember.member;
 
 @SpringBootTest
@@ -33,13 +34,17 @@ public class QueryDs_Intermediate_grammar {
 
     @Autowired
     private EntityManager em;
+    @Autowired
     private JPAQueryFactory query;
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private MemberJpaRepository memberJpaRepository;
+
     @BeforeEach
     public void init() {
-        query = new JPAQueryFactory(em);
+//        query = new JPAQueryFactory(em);
         IntStream.rangeClosed(1, 5).forEach(i -> {
             Member member = new Member("member" + i, i);
             Team team = new Team("team" + i);
@@ -260,5 +265,37 @@ public class QueryDs_Intermediate_grammar {
         log.info("member name : {}", s2);
 
     }
+
+
+    @Test
+    public void searchTest() {
+
+        // given ...
+        MemberSearchCondition condition = new MemberSearchCondition();
+        String memberName = "member1";
+        String teamName = "team1";
+        int ageGoe = 1;
+        int ageLoe = 4;
+
+//        condition.setMemberName(memberName);
+//        condition.setTeamName(teamName);
+//        condition.setAgeGoe(ageGoe);
+//        condition.setAgeLoe(ageLoe);
+
+        // when...
+        List<MemberTeamDto> memberTeamDtos = memberJpaRepository.searchByBuilder(condition);
+
+
+        // then...
+        memberTeamDtos.forEach(member -> {
+            log.info("member id : {}", member.getMemberId());
+            log.info("member name : {}", member.getMemberName());
+            log.info("team id : {}", member.getTeamId());
+            log.info("team name : {}", member.getTeamName());
+            log.info("age : {}", member.getAge());
+        });
+
+    }
+
 
 }
