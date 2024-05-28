@@ -21,9 +21,7 @@ import study.querydsl.repository.MemberQueryRepository;
 import study.querydsl.repository.MemberRepository;
 import study.querydsl.repository.TeamRepository;
 
-import java.io.CharArrayReader;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,8 +48,12 @@ public class MemberTest {
 
     private JPAQueryFactory query;
 
-
     @BeforeEach
+    public void MemberTest() {
+        query = new JPAQueryFactory(em);
+    }
+
+    //    @BeforeEach
     public void init() {
         query = new JPAQueryFactory(em);
         IntStream.rangeClosed(1, 5).forEach(i -> {
@@ -253,15 +255,38 @@ public class MemberTest {
     @Test
     @Transactional
     public void leftJoin_on() {
+
+        // Given: 팀 이름
+        Member member2 = new Member("team1", 0);
+        Member member1 = new Member("team1", 1);
+        Member member3 = new Member("team1", 2);
+        memberRepository.save(member2);
+        memberRepository.save(member1);
+        memberRepository.save(member3);
+
+        Team team1 = new Team("team1");
+        Team team2 = new Team("team2");
+        Team team3 = new Team("team3");
+        teamRepository.save(team1);
+        teamRepository.save(team2);
+        teamRepository.save(team3);
+
+        member1.addTeam(team1);
+        member2.addTeam(team2);
+        member3.addTeam(team3);
+
         // Given: 팀 이름
         String teamName = "team1";
 
         // When: QueryDSL로 회원을 조회하면서 특정 팀 이름을 가진 팀과 LEFT JOIN
-        List<Member> fetch = query.selectFrom(member).leftJoin(member.teamMembers, teamMember).leftJoin(teamMember.team, team)
-//                .on(teamMember.team.name.eq(":ddddd"))
+        List<Member> fetch = query.selectFrom(member)
+                .leftJoin(member.teamMembers, teamMember)
+                .leftJoin(teamMember.team, team)
+                .on(team.name.eq(teamName))
 //                .join(member.teamMembers, teamMember)
 //                .join(teamMember.team, team)
-                .where(team.name.eq(teamName)).fetch();
+//                .where(team.name.eq(teamName))
+                .fetch();
 
         // Then: 조회된 회원 정보를 출력하고 검증
         fetch.forEach(m -> {
@@ -296,7 +321,13 @@ public class MemberTest {
         String teamName = "team1";
 
         // When: QueryDSL로 회원을 조회하면서 특정 팀 이름을 가진 팀과 LEFT JOIN
-        List<Tuple> fetch = query.select(member, team).from(member).leftJoin(team).on(member.name.eq(team.name)).fetch();
+        List<Tuple> fetch = query
+                .select(member, team)
+                .from(member)
+                .leftJoin(team)
+                .on(member.name.eq(team.name))
+                .fetch();
+
         for (Tuple tuple : fetch) {
             ;
             log.info("tuple : {}", tuple);
