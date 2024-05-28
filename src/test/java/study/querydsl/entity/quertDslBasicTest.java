@@ -32,7 +32,7 @@ import static study.querydsl.entity.QTeamMember.teamMember;
 
 @SpringBootTest
 @Slf4j
-public class MemberTest {
+public class quertDslBasicTest {
 
     @Autowired
     private MemberRepository memberRepository;
@@ -257,8 +257,8 @@ public class MemberTest {
     public void leftJoin_on() {
 
         // Given: 팀 이름
-        Member member2 = new Member("team1", 0);
-        Member member1 = new Member("team1", 1);
+        Member member1 = new Member("team1", 0);
+        Member member2 = new Member("team1", 1);
         Member member3 = new Member("team1", 2);
         memberRepository.save(member2);
         memberRepository.save(member1);
@@ -279,10 +279,10 @@ public class MemberTest {
         String teamName = "team1";
 
         // When: QueryDSL로 회원을 조회하면서 특정 팀 이름을 가진 팀과 LEFT JOIN
-        List<Member> fetch = query.selectFrom(member)
+        List<Member> fetch = query.selectFrom(member).distinct()
                 .leftJoin(member.teamMembers, teamMember)
                 .leftJoin(teamMember.team, team)
-                .on(team.name.eq(teamName))
+                .on(teamMember.team.name.eq(team1.getName()))
 //                .join(member.teamMembers, teamMember)
 //                .join(teamMember.team, team)
 //                .where(team.name.eq(teamName))
@@ -299,7 +299,7 @@ public class MemberTest {
         });
 
         // Assert: 조회된 회원의 수를 검증
-        assertThat(fetch.size()).isEqualTo(1);
+        assertThat(fetch.size()).isEqualTo(3);
     }
 
     /**

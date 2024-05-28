@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.QMemberDto;
 import study.querydsl.repository.MemberRepository;
 
 import java.util.List;
@@ -165,5 +166,23 @@ public class QueryDs_Intermediate_grammar {
         });
     }
 
+    @Test
+    void findDtoByQueryProjection() {
+
+        // given...
+        // @BeforeEach
+
+        // when...
+        List<MemberDto> fetch = query
+                .select(new QMemberDto(member.name, member.age))
+                .from(member)
+                .fetch();
+
+        // then...
+        fetch.forEach(member -> {
+            log.info("member Name : {}", member.getName());
+            log.info("member Age : {}", member.getAge());
+        });
+    }
 
 }
