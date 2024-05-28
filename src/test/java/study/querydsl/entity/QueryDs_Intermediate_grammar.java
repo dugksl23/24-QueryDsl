@@ -5,6 +5,7 @@ import ch.qos.logback.core.util.StringUtil;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import io.micrometer.common.util.StringUtils;
@@ -205,10 +206,7 @@ public class QueryDs_Intermediate_grammar {
         // given...
         QMember subQueryMember = new QMember("subQueryMember");
         // when ...
-        query.update(member)
-                .set(member.age, member.age.multiply(2))
-                .where(member.age.lt(4))
-                .execute();
+        query.update(member).set(member.age, member.age.multiply(2)).where(member.age.lt(4)).execute();
 
         em.flush();
         em.clear();
@@ -218,16 +216,13 @@ public class QueryDs_Intermediate_grammar {
         fetch.forEach(member -> log.info("member age : {}", member.getAge()));
     }
 
-
     @Test
     public void bulkDelete() {
 
         // given...
         QMember subQueryMember = new QMember("subQueryMember");
         // when ...
-        query.delete(member)
-                .where(member.age.lt(3))
-                .execute();
+        query.delete(member).where(member.age.lt(3)).execute();
 
         em.flush();
         em.clear();
@@ -235,6 +230,35 @@ public class QueryDs_Intermediate_grammar {
         // then...
         List<Member> fetch = query.select(member).from(member).fetch();
         fetch.forEach(member -> log.info("member age : {}", member.getAge()));
+    }
+
+    @Test
+    public void sqlFunction() {
+
+        // when ...
+        String replaceFunction = "function('replace', {0}, {1}, {2})";
+        String s = query.select(Expressions.stringTemplate(replaceFunction, member.name, "member", "m")).from(member).fetchFirst();
+
+
+        String lower = "function('lower', {0})";
+        String s1 = query.select(member.name)
+                .from(member)
+                .where(member.name.eq
+                        (Expressions.stringTemplate(lower, member.name))
+                ).fetchFirst();
+
+        String s2 = query.select(member.name)
+                .from(member)
+                .where(member.name.eq
+                        (member.name.lower())
+                ).fetchFirst();
+
+
+        // then...
+        log.info("member name : {}", s);
+        log.info("member name : {}", s1);
+        log.info("member name : {}", s2);
+
     }
 
 }
