@@ -37,10 +37,29 @@ public class MemberJpaRepository {
         return em.createQuery(jpql, Member.class).getResultList();
     }
 
-    public List<MemberTeamDto> searchByBuilder(MemberSearchCondition searchCondition) {
+    public List<MemberTeamDto> searchMemberDtoByBuilder(MemberSearchCondition searchCondition) {
         return query.select(new QMemberTeamDto(member.id.as("memberId"), member.name.as("memberName"), member.age, team.id.as("teamId"), team.name.as("teamName"))).from(member).leftJoin(member.teamMembers, teamMember).leftJoin(teamMember.team, team).where(memberNameEq(searchCondition.getMemberName()), teamNameEq(searchCondition.getTeamName()), memberAgeGoe(searchCondition.getAgeGoe()), memberAgeLoe(searchCondition.getAgeLoe())).fetch();
     }
 
+    public List<Member> searchMemberByBuilder(MemberSearchCondition searchCondition) {
+        return query
+                .select(member)
+                .from(member)
+                .leftJoin(member.teamMembers, teamMember)
+                .leftJoin(teamMember.team, team)
+                .where(memberNameEq(searchCondition.getMemberName()),
+                        teamNameEq(searchCondition.getTeamName()),
+                        memberAgeBetween(searchCondition.getAgeGoe(),
+                                searchCondition.getAgeLoe()),
+                        null)
+                .fetch();
+    }
+
+    private BooleanExpression memberAgeBetween(int ageGoe, int ageLoe) {
+
+        return memberAgeGoe(ageGoe).and(memberAgeLoe(ageLoe));
+        //        return member.age.between(ageGoe, ageLoe);
+    }
 
     private BooleanExpression memberNameEq(String memberName) {
 
@@ -77,7 +96,6 @@ public class MemberJpaRepository {
 
         return member.age.loe(memberAge);
     }
-
 
 
 }

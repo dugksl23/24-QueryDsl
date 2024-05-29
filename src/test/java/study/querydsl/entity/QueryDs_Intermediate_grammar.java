@@ -268,7 +268,7 @@ public class QueryDs_Intermediate_grammar {
 
 
     @Test
-    public void searchTest() {
+    public void searchMemberDtoBySearchCondTest() {
 
         // given ...
         MemberSearchCondition condition = new MemberSearchCondition();
@@ -279,11 +279,11 @@ public class QueryDs_Intermediate_grammar {
 
 //        condition.setMemberName(memberName);
 //        condition.setTeamName(teamName);
-//        condition.setAgeGoe(ageGoe);
-//        condition.setAgeLoe(ageLoe);
+        condition.setAgeGoe(ageGoe);
+        condition.setAgeLoe(ageLoe);
 
         // when...
-        List<MemberTeamDto> memberTeamDtos = memberJpaRepository.searchByBuilder(condition);
+        List<MemberTeamDto> memberTeamDtos = memberJpaRepository.searchMemberDtoByBuilder(condition);
 
 
         // then...
@@ -292,6 +292,32 @@ public class QueryDs_Intermediate_grammar {
             log.info("member name : {}", member.getMemberName());
             log.info("team id : {}", member.getTeamId());
             log.info("team name : {}", member.getTeamName());
+            log.info("age : {}", member.getAge());
+        });
+
+    }
+
+    @Test
+    public void searchMemberBySearchCondTest() {
+
+        // given ...
+        MemberSearchCondition condition = new MemberSearchCondition();
+        String memberName = "member1";
+        String teamName = "team1";
+        int ageGoe = 1;
+        int ageLoe = 4;
+
+        condition.setMemberName(memberName);
+        condition.setTeamName(teamName);
+        condition.setAgeGoe(ageGoe);
+        condition.setAgeLoe(ageLoe);
+
+        // when...
+        List<Member> memberTeamDtos = memberJpaRepository.searchMemberByBuilder(condition);
+
+
+        // then...
+        memberTeamDtos.forEach(member -> {
             log.info("age : {}", member.getAge());
         });
 
