@@ -21,7 +21,6 @@ import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberDto;
 import study.querydsl.repository.MemberJpaRepository;
 import study.querydsl.repository.MemberRepository;
-import study.querydsl.repository.MemberRepositoryCustom;
 
 import java.util.List;
 import java.util.stream.IntStream;

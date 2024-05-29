@@ -26,7 +26,6 @@ public class InitMemberTest {
 
     @PostConstruct
     public void init() {
-
         createMemberInit.init();
     }
 
