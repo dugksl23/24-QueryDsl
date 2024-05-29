@@ -21,6 +21,7 @@ import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberDto;
 import study.querydsl.repository.MemberJpaRepository;
 import study.querydsl.repository.MemberRepository;
+import study.querydsl.repository.MemberRepositoryCustom;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -315,6 +316,32 @@ public class QueryDs_Intermediate_grammar {
         // when...
         List<Member> memberTeamDtos = memberJpaRepository.searchMemberByBuilder(condition);
 
+
+        // then...
+        memberTeamDtos.forEach(member -> {
+            log.info("age : {}", member.getAge());
+        });
+
+    }
+
+
+    @Test
+    public void searchByMemberRepositoryCustom() {
+
+        // given ...
+        MemberSearchCondition condition = new MemberSearchCondition();
+        String memberName = "member1";
+        String teamName = "team1";
+        int ageGoe = 1;
+        int ageLoe = 4;
+
+        condition.setMemberName(memberName);
+        condition.setTeamName(teamName);
+        condition.setAgeGoe(ageGoe);
+        condition.setAgeLoe(ageLoe);
+
+        // when...
+        List<Member> memberTeamDtos = memberRepository.searchByMember(condition);
 
         // then...
         memberTeamDtos.forEach(member -> {
