@@ -2,12 +2,14 @@ package study.querydsl.repository;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
@@ -89,6 +91,37 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
         return new PageImpl<>(fetch, pageable, count);
     }
+
+    public Page<MemberTeamDto> searchPagingCountQueryOptimization(MemberSearchCondition condition, Pageable pageable) {
+
+        List<MemberTeamDto> fetch = query
+                .select(new QMemberTeamDto(
+                        member.id.as("memberId"),
+                        member.name.as("memberName"),
+                        member.age,
+                        team.id.as("teamId"),
+                        team.name.as("teamName")))
+                .from(member)
+                .leftJoin(member.teamMembers, teamMember)
+                .leftJoin(teamMember.team, team)
+                .where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()),
+                        memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe()))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();// fetch Query 1번만 실행
+
+
+        JPAQuery<Member> countQuery = query.select(member)
+                .from(member)
+                .leftJoin(member.teamMembers, teamMember)
+                .leftJoin(teamMember.team, team)
+                .where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()),
+                        memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe()));
+
+
+        return PageableExecutionUtils.getPage(fetch, pageable, countQuery::fetchCount);
+    }
+
 
     private BooleanExpression memberAgeBetween(int ageGoe, int ageLoe) {
 
