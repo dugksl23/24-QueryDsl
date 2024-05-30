@@ -39,21 +39,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
     @Override
     public Page<MemberTeamDto> searchPageSimple(MemberSearchCondition condition, Pageable pageable) {
-        QueryResults<MemberTeamDto> results = query
-                .select(new QMemberTeamDto(
-                        member.id.as("memberId"),
-                        member.name.as("memberName"),
-                        member.age,
-                        team.id.as("teamId"),
-                        team.name.as("teamName")))
-                .from(member)
-                .leftJoin(member.teamMembers, teamMember)
-                .leftJoin(teamMember.team, team)
-                .where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()),
-                        memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe()))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetchResults();// fetch Query 와 Count Query 두번 질의
+        QueryResults<MemberTeamDto> results = query.select(new QMemberTeamDto(member.id.as("memberId"), member.name.as("memberName"), member.age, team.id.as("teamId"), team.name.as("teamName"))).from(member).leftJoin(member.teamMembers, teamMember).leftJoin(teamMember.team, team).where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()), memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe())).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetchResults();// fetch Query 와 Count Query 두번 질의
 
         List<MemberTeamDto> content = results.getResults();
         long total = results.getTotal(); //전체 record 수
@@ -64,105 +50,64 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
     @Override
     public Page<MemberTeamDto> searchPageComplex(MemberSearchCondition condition, Pageable pageable) {
 
-        List<MemberTeamDto> fetch = query
-                .select(new QMemberTeamDto(
-                        member.id.as("memberId"),
-                        member.name.as("memberName"),
-                        member.age,
-                        team.id.as("teamId"),
-                        team.name.as("teamName")))
-                .from(member)
-                .leftJoin(member.teamMembers, teamMember)
-                .leftJoin(teamMember.team, team)
-                .where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()),
-                        memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe()))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();// fetch Query 1번만 실행
+        List<MemberTeamDto> fetch = query.select(new QMemberTeamDto(member.id.as("memberId"), member.name.as("memberName"), member.age, team.id.as("teamId"), team.name.as("teamName"))).from(member).leftJoin(member.teamMembers, teamMember).leftJoin(teamMember.team, team).where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()), memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe())).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();// fetch Query 1번만 실행
 
 
-        long count = query.select(member)
-                .from(member)
-                .leftJoin(member.teamMembers, teamMember)
-                .leftJoin(teamMember.team, team)
-                .where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()),
-                        memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe()))
-                .fetchCount();
+        long count = query.select(member).from(member).leftJoin(member.teamMembers, teamMember).leftJoin(teamMember.team, team).where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()), memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe())).fetchCount();
 
         return new PageImpl<>(fetch, pageable, count);
     }
 
     public Page<MemberTeamDto> searchPagingCountQueryOptimization(MemberSearchCondition condition, Pageable pageable) {
 
-        List<MemberTeamDto> fetch = query
-                .select(new QMemberTeamDto(
-                        member.id.as("memberId"),
-                        member.name.as("memberName"),
-                        member.age,
-                        team.id.as("teamId"),
-                        team.name.as("teamName")))
-                .from(member)
-                .leftJoin(member.teamMembers, teamMember)
-                .leftJoin(teamMember.team, team)
-                .where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()),
-                        memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe()))
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();// fetch Query 1번만 실행
+        List<MemberTeamDto> fetch = query.select(new QMemberTeamDto(member.id.as("memberId"), member.name.as("memberName"), member.age, team.id.as("teamId"), team.name.as("teamName"))).from(member).leftJoin(member.teamMembers, teamMember).leftJoin(teamMember.team, team).where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()), memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe())).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();// fetch Query 1번만 실행
 
 
-        JPAQuery<Member> countQuery = query.select(member)
-                .from(member)
-                .leftJoin(member.teamMembers, teamMember)
-                .leftJoin(teamMember.team, team)
-                .where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()),
-                        memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe()));
+        JPAQuery<Member> countQuery = query.select(member).from(member).leftJoin(member.teamMembers, teamMember).leftJoin(teamMember.team, team).where(memberNameEq(condition.getMemberName()), teamNameEq(condition.getTeamName()), memberAgeBetween(condition.getAgeGoe(), condition.getAgeLoe()));
 
 
         return PageableExecutionUtils.getPage(fetch, pageable, countQuery::fetchCount);
     }
 
 
-    private BooleanExpression memberAgeBetween(int ageGoe, int ageLoe) {
+    private BooleanExpression memberAgeBetween(Integer ageGoe, Integer ageLoe) {
+        BooleanExpression ageLoeExpression = memberAgeLoe(ageLoe);
+        BooleanExpression ageGoeExpression = memberAgeGoe(ageGoe);
 
-        return memberAgeGoe(ageGoe).and(memberAgeLoe(ageLoe));
-        //        return member.age.between(ageGoe, ageLoe);
+        if (ageGoeExpression != null && ageLoeExpression != null) {
+            return ageGoeExpression.and(ageLoeExpression);
+        } else if (ageGoeExpression != null) {
+            return ageGoeExpression;
+        } else {
+            return ageLoeExpression;
+        }
     }
 
+//    private BooleanExpression memberAgeBetween(Integer ageGoe, Integer ageLoe) {
+//
+//        if (memberAgeGoe(ageGoe) == null && memberAgeLoe(ageLoe) == null) {
+//            return null;
+//        } else if (memberAgeGoe(ageGoe) == null){
+//            return memberAgeLoe(ageLoe);
+//        }
+//
+//        return memberAgeGoe(ageGoe).and(memberAgeLoe(ageLoe));
+//    }
+
     private BooleanExpression memberNameEq(String memberName) {
-
-        if (StringUtils.isBlank(memberName)) {
-            return null;
-        }
-
-        return member.name.eq(memberName);
+        return StringUtils.isBlank(memberName) ? null : member.name.eq(memberName);
     }
 
     private BooleanExpression teamNameEq(String teamName) {
-
-        if (StringUtils.isBlank(teamName)) {
-            return null;
-        }
-
-        return team.name.eq(teamName);
+        return StringUtils.isBlank(teamName) ? null : team.name.eq(teamName);
     }
 
     private BooleanExpression memberAgeGoe(Integer memberAge) {
-
-        if (memberAge == null) {
-            return null;
-        }
-
-        return member.age.goe(memberAge);
+        return memberAge == null ? null : member.age.goe(memberAge);
     }
 
     private BooleanExpression memberAgeLoe(Integer memberAge) {
-
-        if (memberAge == null) {
-            return null;
-        }
-
-        return member.age.loe(memberAge);
+        return memberAge == null ? null : member.age.loe(memberAge);
     }
 
 }

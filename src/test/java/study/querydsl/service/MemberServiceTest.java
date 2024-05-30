@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import study.querydsl.dto.MemberSearchCondition;
@@ -41,7 +42,8 @@ class MemberServiceTest {
         condition.setAgeGoe(1);
 
         // when...
-        Page<MemberTeamDto> memberTeamDtos = memberService.searchPageSimple(offset, limit, condition);
+        PageRequest pageRequest = PageRequest.of(offset, limit);
+        Page<MemberTeamDto> memberTeamDtos = memberService.searchPageSimple(condition, pageRequest);
 
         // then..
         log.info("memberTeamDtos size: {}", memberTeamDtos.getSize());
@@ -65,7 +67,8 @@ class MemberServiceTest {
         condition.setAgeGoe(1);
 
         // when...
-        Page<MemberTeamDto> memberTeamDtos = memberService.searchPageComplex(offset, limit, condition);
+        PageRequest pageRequest = PageRequest.of(offset, limit);
+        Page<MemberTeamDto> memberTeamDtos = memberService.searchPageComplex(condition, pageRequest);
 
         // then..
         log.info("memberTeamDtos size: {}", memberTeamDtos.getSize());
